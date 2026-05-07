@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>小红书产品分析报告</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --red: #FF2D55;
+    --red-light: #FFF0F3;
+    --bg: #FAFAFA;
+    --card: #FFFFFF;
+    --text: #1A1A1A;
+    --text-secondary: #666;
+    --border: #F0F0F0;
+  }
+
+  body {
+    font-family: 'Noto Sans SC', -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.8;
+    overflow-x: hidden;
+  }
+
+  /* Progress bar */
+  .progress-bar {
+    position: fixed;
+    top: 0; left: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--red), #FF6B8A);
+    z-index: 1000;
+    transition: width 0.3s;
+  }
+
+  /* Hero */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 2rem;
+    position: relative;
+    background: linear-gradient(135deg, #FFF5F7 0%, #FFE8ED 50%, #FFF0F3 100%);
+  }
+
+  .hero-logo {
+    width: 64px;
+    height: 64px;
+    background: var(--red);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 2rem;
+    box-shadow: 0 8px 32px rgba(255,45,85,0.25);
+    animation: float 3s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+
+  .hero-logo svg { width: 36px; height: 36px; fill: white; }
+
+  .hero h1 {
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
+    font-weight: 900;
+    letter-spacing: -0.03em;
+    background: linear-gradient(135deg, var(--red), #FF6B8A);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 1rem;
+  }
+
+  .hero p {
+    font-size: 1.15rem;
+    color: var(--text-secondary);
+    max-width: 560px;
+    font-weight: 300;
+  }
+
+  .hero-meta {
+    margin-top: 2.5rem;
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+  }
+
+  .hero-meta span { display: flex; align-items: center; gap: 0.4rem; }
+
+  .scroll-indicator {
+    position: absolute;
+    bottom: 2rem;
+    width: 24px;
+    height: 40px;
+    border: 2px solid var(--red);
+    border-radius: 12px;
+    display: flex;
+    justify-content: center;
+  }
+
+  .scroll-indicator::after {
+    content: '';
+    width: 3px;
+    height: 10px;
+    background: var(--red);
+    border-radius: 2px;
+    margin-top: 8px;
+    animation: scrollDot 2s infinite;
+  }
+
+  @keyframes scrollDot {
+    0% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(12px); }
+  }
+
+  /* Container */
+  .container {
+    max-width: 840px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+  }
+
+  /* Section */
+  .section {
+    padding: 5rem 0;
+    opacity: 0;
+    transform: translateY(40px);
+    transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .section.visible { opacity: 1; transform: translateY(0); }
+
+  .section-tag {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: var(--red);
+    background: var(--red-light);
+    padding: 0.2rem 0.8rem;
+    border-radius: 100px;
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+  }
+
+  .section h2 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    letter-spacing: -0.02em;
+  }
+
+  .section .subtitle {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    margin-bottom: 2.5rem;
+    font-weight: 300;
+  }
+
+  .section p, .section li {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    font-weight: 300;
+    line-height: 2;
+  }
+
+  .section p strong, .section li strong { color: var(--text); font-weight: 500; }
+
+  /* Cards */
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1rem;
+    margin: 1.5rem 0;
+  }
+
+  .card {
+    background: var(--card);
+    border-radius: 16px;
+    padding: 1.5rem;
+    border: 1px solid var(--border);
+    transition: all 0.3s;
+  }
+
+  .card:hover {
+    border-color: var(--red);
+    box-shadow: 0 8px 32px rgba(255,45,85,0.08);
+    transform: translateY(-2px);
+  }
+
+  .card .icon {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .card h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.3rem;
+  }
+
+  .card p {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+  }
+
+  /* Data cards with numbers */
+  .data-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+    margin: 1.5rem 0;
+  }
+
+  .data-card {
+    background: var(--card);
+    border-radius: 16px;
+    padding: 1.5rem;
+    border: 1px solid var(--border);
+    text-align: center;
+  }
+
+  .data-card .number {
+    font-size: 2.2rem;
+    font-weight: 900;
+    background: linear-gradient(135deg, var(--red), #FF6B8A);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    line-height: 1.2;
+  }
+
+  .data-card .label {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-top: 0.3rem;
+  }
+
+  /* Table */
+  .table-wrap {
+    overflow-x: auto;
+    margin: 1.5rem 0;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+    min-width: 500px;
+  }
+
+  thead { background: var(--red-light); }
+
+  th {
+    text-align: left;
+    padding: 0.9rem 1.2rem;
+    font-weight: 600;
+    color: var(--text);
+    font-size: 0.82rem;
+  }
+
+  td {
+    padding: 0.8rem 1.2rem;
+    border-top: 1px solid var(--border);
+    color: var(--text-secondary);
+    font-weight: 300;
+  }
+
+  tr:last-child td:first-child { border-radius: 0 0 0 12px; }
+  tr:last-child td:last-child { border-radius: 0 0 12px 0; }
+
+  /* Highlight box */
+  .highlight {
+    background: linear-gradient(135deg, var(--red-light), #FFF5F7);
+    border-radius: 16px;
+    padding: 2rem;
+    margin: 1.5rem 0;
+    border-left: 4px solid var(--red);
+  }
+
+  .highlight h4 {
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .highlight p, .highlight li {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+  }
+
+  .highlight ul { list-style: none; padding: 0; }
+  .highlight ul li::before { content: '• '; color: var(--red); font-weight: 700; }
+
+  /* User path */
+  .path-flow {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+    justify-content: center;
+    margin: 1.5rem 0;
+  }
+
+  .path-step {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    padding: 0.5rem 1.2rem;
+    font-size: 0.85rem;
+    font-weight: 400;
+    white-space: nowrap;
+  }
+
+  .path-arrow { color: var(--red); font-weight: 300; font-size: 1.1rem; }
+
+  /* Insight box */
+  .insight-box {
+    background: var(--card);
+    border-radius: 16px;
+    padding: 1.8rem;
+    border: 1px solid var(--border);
+    margin: 1.5rem 0;
+    position: relative;
+    padding-left: 2.5rem;
+  }
+
+  .insight-box::before {
+    content: '💡';
+    position: absolute;
+    left: 1rem;
+    top: 1.8rem;
+  }
+
+  .insight-box h4 {
+    font-size: 0.95rem;
+    margin-bottom: 0.3rem;
+  }
+
+  .insight-box p { font-size: 0.88rem; margin: 0; }
+
+  /* Tag cloud */
+  .tag-cloud {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 1rem 0;
+  }
+
+  .tag {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    padding: 0.4rem 1rem;
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    transition: all 0.3s;
+  }
+
+  .tag:hover {
+    border-color: var(--red);
+    color: var(--red);
+    background: var(--red-light);
+  }
+
+  /* Feature list */
+  .feature-list {
+    list-style: none;
+    padding: 0;
+    margin: 1rem 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 0.6rem;
+  }
+
+  .feature-list li {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.7rem 1rem;
+    font-size: 0.88rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .feature-list li::before { content: '✓'; color: var(--red); font-weight: 700; }
+
+  /* Divider */
+  .divider {
+    width: 60px;
+    height: 2px;
+    background: linear-gradient(90deg, var(--red), transparent);
+    margin: 3rem auto;
+  }
+
+  /* Footer */
+  footer {
+    text-align: center;
+    padding: 3rem 1.5rem;
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    font-weight: 300;
+    border-top: 1px solid var(--border);
+  }
+
+  /* Responsive */
+  @media (max-width: 640px) {
+    .section { padding: 3rem 0; }
+    .section h2 { font-size: 1.6rem; }
+    .hero-meta { gap: 0.8rem; flex-direction: column; align-items: center; }
+    .data-grid { grid-template-columns: repeat(2, 1fr); }
+    .card-grid { grid-template-columns: 1fr; }
+    .feature-list { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="progressBar"></div>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-logo">
+    <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+  </div>
+  <h1>小红书产品分析报告</h1>
+  <p>基于三年深度体验，从用户、商业与可行性三个维度，拆解这款3亿月活的生活方式决策平台。</p>
+  <div class="hero-meta">
+    <span>📱 体验人：Xuan</span>
+    <span>📅 2023.09 – 2026.03</span>
+    <span>📊 v9.19 / Android</span>
+  </div>
+  <div class="scroll-indicator"></div>
+</section>
+
+<div class="container">
+
+  <!-- 一、体验环境 -->
+  <section class="section" id="env">
+    <span class="section-tag">01</span>
+    <h2>体验环境与分析方法</h2>
+    <p class="subtitle">三年持续追踪，系统化拆解产品的每一层</p>
+
+    <div class="card-grid">
+      <div class="card">
+        <div class="icon">📱</div>
+        <h4>体验设备</h4>
+        <p>Android 真我 Neo7 Turbo</p>
+      </div>
+      <div class="card">
+        <div class="icon">📅</div>
+        <h4>体验周期</h4>
+        <p>2023年9月 – 2026年3月</p>
+      </div>
+      <div class="card">
+        <div class="icon">📋</div>
+        <h4>APP 版本</h4>
+        <p>v9.19</p>
+      </div>
+    </div>
+
+    <div class="highlight">
+      <h4>分析方法</h4>
+      <ul>
+        <li>从<strong>用户</strong>、<strong>商业</strong>和<strong>可行性</strong>三个核心要素分析产品</li>
+        <li>参考产品迭代的重要性评估功能发展</li>
+        <li>运用产品体验要素进行结构化拆解</li>
+        <li>从产品经理角度评估每个功能的价值与问题</li>
+      </ul>
+    </div>
+
+    <div class="tag-cloud">
+      <span class="tag">QuestMobile</span>
+      <span class="tag">极光大数据</span>
+      <span class="tag">36氪</span>
+      <span class="tag">晚点LatePost</span>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- 二、产品概述 -->
+  <section class="section" id="overview">
+    <span class="section-tag">02</span>
+    <h2>产品概述</h2>
+    <p class="subtitle">从一份PDF到3亿月活的生活决策平台</p>
+
+    <p><strong>背景：</strong>小红书最初为 PDF《香港购物指南》，后来发展为"社区 + 电商"平台。截至 2026 年初，月活用户超过 <strong>3 亿</strong>。</p>
+
+    <p><strong>定位：</strong>基于 UGC 内容社区，用户可通过图文或视频分享生活经验，形成"看 — 买 — 晒"的闭环。</p>
+
+    <div class="insight-box">
+      <h4>产品洞察</h4>
+      <p>小红书更像<strong>生活方式搜索引擎</strong>，用户可搜索穿搭、探店、旅游攻略、考研经验等内容。日均搜索量已超过百度，成为中文互联网<strong>第三大搜索入口</strong>。</p>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- 三、用户分析 -->
+  <section class="section" id="users">
+    <span class="section-tag">03</span>
+    <h2>用户分析</h2>
+    <p class="subtitle">谁在使用小红书？他们为何离不开它？</p>
+
+    <h3 style="font-size:1.1rem; font-weight:600; margin-bottom:0.8rem;">用户类型及特征</h3>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>用户类型</th><th>特征</th><th>使用场景</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>普通用户</strong></td><td>18-35 岁女性为主，男性占比上升</td><td>浏览笔记、搜攻略、种草、参考决策</td></tr>
+          <tr><td><strong>内容创作者</strong></td><td>从素人到头部博主，覆盖美妆、穿搭、家居、职场等</td><td>发布内容、接广告、经营个人IP</td></tr>
+          <tr><td><strong>品牌商家</strong></td><td>有曝光和转化需求</td><td>投流、开店铺、合作博主</td></tr>
+          <tr><td><strong>MCN 机构</strong></td><td>签约孵化博主</td><td>商业变现、流量变现</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 style="font-size:1.1rem; font-weight:600; margin:2rem 0 0.8rem;">用户规模</h3>
+
+    <div class="data-grid">
+      <div class="data-card">
+        <div class="number" data-count="3">0</div>
+        <div class="label">月活用户（亿）</div>
+      </div>
+      <div class="data-card">
+        <div class="number" data-count="70">0</div>
+        <div class="label">90 后占比（%）</div>
+      </div>
+      <div class="data-card">
+        <div class="number" data-count="90">0</div>
+        <div class="label">日均使用时长（分钟）</div>
+      </div>
+      <div class="data-card">
+        <div class="number" data-count="6">0</div>
+        <div class="label">日均搜索量（亿次）</div>
+      </div>
+      <div class="data-card">
+        <div class="number" data-count="55">0</div>
+        <div class="label">一二线城市占比（%）</div>
+      </div>
+    </div>
+
+    <h3 style="font-size:1.1rem; font-weight:600; margin:2rem 0 0.8rem;">用户画像</h3>
+
+    <div class="card-grid">
+      <div class="card">
+        <h4>🎂 年龄</h4>
+        <p>核心用户 <strong>18-35 岁</strong>，主要为大学生和职场新人</p>
+      </div>
+      <div class="card">
+        <h4>⚤ 性别</h4>
+        <p>女性占多数（约<strong>70%</strong>），男性用户增长明显</p>
+      </div>
+      <div class="card">
+        <h4>🏙 城市</h4>
+        <p>一二线城市占比 <strong>80%</strong>，下沉市场占 20%</p>
+      </div>
+      <div class="card">
+        <h4>🎯 行为特征</h4>
+        <p>消费前搜索、重视真实分享、愿意为优质内容付费，有强烈表达欲</p>
+      </div>
+    </div>
+
+    <div class="highlight">
+      <h4>用户行为逻辑</h4>
+      <ul>
+        <li>年轻用户探索需求旺盛，形成<strong>决策习惯</strong></li>
+        <li>社区氛围带来<strong>情感共鸣</strong>，强化归属感</li>
+        <li>创作者生态<strong>自我强化</strong>，吸引同龄用户加入</li>
+        <li>高线城市用户主导内容生态，强化消费及生活方式偏好</li>
+      </ul>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- 四、产品体验分析 -->
+  <section class="section" id="ux">
+    <span class="section-tag">04</span>
+    <h2>产品体验分析</h2>
+    <p class="subtitle">战略层、功能层到结构层的完整拆解</p>
+
+    <h3 style="font-size:1.1rem; font-weight:600; margin-bottom:0.8rem;">战略层</h3>
+    <p><strong>使命：</strong>成为用户消费决策首选入口。</p>
+
+    <div class="card-grid" style="margin-top:1rem;">
+      <div class="card">
+        <h4>📖 表层需求</h4>
+        <p>浏览内容、搜攻略、学习技能</p>
+      </div>
+      <div class="card">
+        <h4>🧠 深层需求</h4>
+        <p>获得精准推荐、被认同、寻找同类、降低消费风险</p>
+      </div>
+      <div class="card">
+        <h4>⚠️ 痛点</h4>
+        <p>广告过多、内容同质化、搜索难辨真假</p>
+      </div>
+    </div>
+
+    <div class="highlight">
+      <h4>战略契合与冲突</h4>
+      <ul>
+        <li><strong>契合：</strong>UGC 内容真实、用户主动搜索、购买路径短</li>
+        <li><strong>冲突：</strong>商业化加速可能影响真实感</li>
+      </ul>
+    </div>
+
+    <h3 style="font-size:1.1rem; font-weight:600; margin:2rem 0 0.8rem;">功能与范围</h3>
+
+    <div class="card-grid">
+      <div class="card">
+        <h4>📝 内容生产</h4>
+        <p>图文笔记 · 视频笔记 · 直播 · 瞬间 · 合集</p>
+      </div>
+      <div class="card">
+        <h4>📤 内容分发</h4>
+        <p>推荐流 · 搜索 · 附近</p>
+      </div>
+      <div class="card">
+        <h4>💬 社交互动</h4>
+        <p>点赞 · 评论 · 收藏 · 私信 · 关注流 · 话题页</p>
+      </div>
+      <div class="card">
+        <h4>💰 商业变现</h4>
+        <p>蒲公英平台 · 品牌合作 · 买手带货 · 直接带货</p>
+      </div>
+    </div>
+
+    <h3 style="font-size:1.1rem; font-weight:600; margin:2rem 0 0.8rem;">核心功能拆解</h3>
+
+    <div class="card-grid">
+      <div class="card">
+        <h4>🖼 双列信息流</h4>
+        <p>用户需要主动选择笔记，视觉与情绪驱动点击。保持社区理性和慢节奏体验。</p>
+      </div>
+      <div class="card">
+        <h4>🔍 搜索功能</h4>
+        <p>搜索框始终可见，支持关键词、分类筛选和排序。日均搜索量约 <strong>6 亿次</strong>，搜索结果可信度高，形成用户护城河。</p>
+      </div>
+      <div class="card">
+        <h4>🛍 买手橱窗</h4>
+        <p>笔记内可插入商品链接，小程序内完成购买。信任驱动购买路径短，客单价和复购率较高。</p>
+      </div>
+    </div>
+
+    <h3 style="font-size:1.1rem; font-weight:600; margin:2rem 0 0.8rem;">结构层 — 用户核心路径</h3>
+
+    <div class="path-flow">
+      <span class="path-step">日常浏览</span>
+      <span class="path-arrow">→</span>
+      <span class="path-step">打开 App</span>
+      <span class="path-arrow">→</span>
+      <span class="path-step">推荐流</span>
+      <span class="path-arrow">→</span>
+      <span class="path-step">浏览封面</span>
+      <span class="path-arrow">→</span>
+      <span class="path-step">点击笔记</span>
+      <span class="path-arrow">→</span>
+      <span class="path-step">阅读 / 互动</span>
+      <span class="path-arrow">→</span>
+      <span class="path-step">返回</span>
+    </div>
+
+    <div class="path-flow">
+      <span class="path-step">主动搜索</span>
+      <span class="path-arrow">→</span>
+      <span class="path-step">打开 App</span>
+      <span class="path-arrow">→</span>
+      <span class="path-step">搜索</span>
+      <span class="path-arrow">→</span>
+      <span class="path-step">浏览结果</span>
+      <span class="path-arrow">→</span>
+      <span class="path-step">点击笔记</span>
+      <span class="path-arrow">→</span>
+      <span class="path-step">阅读 / 收藏</span>
+    </div>
+
+    <div class="path-flow">
+      <span class="path-step">创作者发布</span>
+      <span class="path-arrow">→</span>
+      <span class="path-step">打开 App</span>
+      <span class="path-arrow">→</span>
+      <span class="path-step">+ 号</span>
+      <span class="path-arrow">→</span>
+      <span class="path-step">拍摄 / 上传</span>
+      <span class="path-arrow">→</span>
+      <span class="path-step">编辑</span>
+      <span class="path-arrow">→</span>
+      <span class="path-step">发布</span>
+      <span class="path-arrow">→</span>
+      <span class="path-step">查看数据</span>
+    </div>
+
+    <div class="path-flow">
+      <span class="path-step">电商转化</span>
+      <span class="path-arrow">→</span>
+      <span class="path-step">刷到带货笔记</span>
+      <span class="path-arrow">→</span>
+      <span class="path-step">点击商品</span>
+      <span class="path-arrow">→</span>
+      <span class="path-step">小程序下单</span>
+      <span class="path-arrow">→</span>
+      <span class="path-step">订单跟踪</span>
+    </div>
+
+    <h3 style="font-size:1.1rem; font-weight:600; margin:2rem 0 0.8rem;">信息架构</h3>
+    <div class="card-grid">
+      <div class="card"><h4>🏠 首页</h4><p>推荐 · 关注 · 附近</p></div>
+      <div class="card"><h4>🛒 商城</h4><p>购物车 · 订单 · 商品 · 店铺</p></div>
+      <div class="card"><h4>💌 消息</h4><p>评论 · 点赞 · 私信</p></div>
+      <div class="card"><h4>👤 我</h4><p>个人主页 · 笔记 · 收藏 · 点赞</p></div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- 五、商业模式 -->
+  <section class="section" id="business">
+    <span class="section-tag">05</span>
+    <h2>商业模式</h2>
+    <p class="subtitle">社区 + 电商的双轮驱动</p>
+
+    <h3 style="font-size:1.1rem; font-weight:600; margin-bottom:0.8rem;">收入来源</h3>
+    <div class="card-grid">
+      <div class="card">
+        <h4>📢 广告</h4>
+        <p>开屏 · 信息流 · 搜索广告</p>
+      </div>
+      <div class="card">
+        <h4>🛍 电商</h4>
+        <p>买手橱窗 · 直播抽成</p>
+      </div>
+      <div class="card">
+        <h4>📋 平台服务费</h4>
+        <p>蒲公英平台抽成</p>
+      </div>
+    </div>
+
+    <h3 style="font-size:1.1rem; font-weight:600; margin:2rem 0 0.8rem;">商业逻辑</h3>
+    <div class="highlight">
+      <ul>
+        <li><strong>用户逻辑：</strong>真实分享吸引用户 → 形成流量 → 流量变现</li>
+        <li><strong>商家逻辑：</strong>付费获取流量和转化，平台提供支持工具</li>
+        <li><strong>核心问题：</strong>商业化与社区氛围之间的<strong>平衡</strong>是核心挑战</li>
+      </ul>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- 六、改进建议 -->
+  <section class="section" id="improve">
+    <span class="section-tag">06</span>
+    <h2>产品改进建议</h2>
+    <p class="subtitle">让好产品变得更好</p>
+
+    <div class="card-grid">
+      <div class="card">
+        <h4>👆 长按笔记减少无效推荐</h4>
+        <p>用户可主动标记不感兴趣的内容，提升推荐精准度</p>
+      </div>
+      <div class="card">
+        <h4>🔎 搜索结果增加"真实分享"筛选</h4>
+        <p>优先展示普通用户笔记，提高用户信任和决策效率</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- 七、总结 -->
+  <section class="section" id="summary">
+    <span class="section-tag">07</span>
+    <h2>总结</h2>
+    <p class="subtitle">十年转型，3亿月活背后的核心优势与未来挑战</p>
+
+    <p>小红书经过十年发展，成功转型为 <strong>3 亿月活</strong>的生活决策平台，核心优势：</p>
+
+    <div class="feature-list" style="margin-top:1.5rem;">
+      <li><strong>双列流</strong> — 保持用户选择主动性</li>
+      <li><strong>搜索心智</strong> — 用户已形成"去小红书搜"的习惯</li>
+      <li><strong>信任电商</strong> — 购买路径短，基于真实分享</li>
+    </div>
+
+    <div class="highlight" style="margin-top:2rem;">
+      <h4>未来挑战</h4>
+      <p>未来的挑战在于平衡<strong>商业化增长</strong>与<strong>真实感维持</strong>，需要在"增长"与"可信"之间找到最佳点。</p>
+    </div>
+  </section>
+
+</div>
+
+<footer>
+  <p>小红书产品分析报告 · 由 Xuan 基于 2023.09 – 2026.03 深度体验撰写</p>
+</footer>
+
+<script>
+  // Progress bar
+  window.addEventListener('scroll', () => {
+    const scrollTop = window.scrollY;
+    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    const progress = (scrollTop / docHeight) * 100;
+    document.getElementById('progressBar').style.width = progress + '%';
+  });
+
+  // Intersection Observer for sections
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.section').forEach(s => observer.observe(s));
+
+  // Count-up animation
+  function animateCounters() {
+    document.querySelectorAll('.number[data-count]').forEach(el => {
+      const target = parseInt(el.dataset.count);
+      const suffix = el.dataset.suffix || '';
+      let current = 0;
+      const step = Math.ceil(target / 60);
+      const timer = setInterval(() => {
+        current += step;
+        if (current >= target) {
+          current = target;
+          clearInterval(timer);
+        }
+        el.textContent = current + suffix;
+      }, 25);
+    });
+  }
+
+  // Trigger count-up when summary section is visible
+  const summaryObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        animateCounters();
+        summaryObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.3 });
+
+  const summarySection = document.querySelector('#users');
+  if (summarySection) summaryObserver.observe(summarySection);
+
+  // Smooth scroll
+  document.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener('click', e => {
+      e.preventDefault();
+      const target = document.querySelector(a.getAttribute('href'));
+      if (target) target.scrollIntoView({ behavior: 'smooth' });
+    });
+  });
+</script>
+
+</body>
+</html>
